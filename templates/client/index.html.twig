@@ -29,7 +29,7 @@
                 <td>{{ client.sex }}</td>
                 <td>{{ client.email }}</td>
                 <td>{{ client.phone }}</td>
-                <td>{{ client.photo }}</td>
+                <td>{% if (client.photo) %}<img src="{{ asset('uploads/photos/' ~ client.photo) }}" alt="Photo">{% endif %}</td>
                 <td>{{ client.isConfirmed ? 'Yes' : 'No' }}</td>
                 <td>{{ client.isActive ? 'Yes' : 'No' }}</td>
                 <td>

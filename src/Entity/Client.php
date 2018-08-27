@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ClientRepository")
@@ -28,11 +29,16 @@ class Client
 
     /**
      * @ORM\Column(type="string", length=1)
+     * @Assert\Choice(choices={"M", "F"}, message="Choose a valid sex.")
      */
     private $sex;
 
     /**
      * @ORM\Column(type="string", length=128)
+     * @Assert\Email(
+     *     message = "The email '{{ value }}' is not a valid email.",
+     *     checkMX = false
+     * )
      */
     private $email;
 
@@ -43,6 +49,12 @@ class Client
 
     /**
      * @ORM\Column(type="string", length=128, nullable=true)
+     * @Assert\Image(
+     *     minWidth = 200,
+     *     maxWidth = 400,
+     *     minHeight = 200,
+     *     maxHeight = 400
+     * )
      */
     private $photo;
 
@@ -55,6 +67,12 @@ class Client
      * @ORM\Column(type="boolean")
      */
     private $isActive;
+    
+    public function __construct()
+    {
+        $this->setIsConfirmed(0);
+        $this->setIsActive(0);
+    }
 
     public function getId(): ?int
     {
@@ -121,12 +139,12 @@ class Client
         return $this;
     }
 
-    public function getPhoto(): ?string
+    public function getPhoto()
     {
         return $this->photo;
     }
 
-    public function setPhoto(?string $photo): self
+    public function setPhoto($photo): self
     {
         $this->photo = $photo;
 

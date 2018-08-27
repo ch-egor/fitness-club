@@ -17,7 +17,7 @@
             </tr>
             <tr>
                 <th>DateOfBirth</th>
-                <td>{{ client.dateOfBirth ? client.dateOfBirth|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ client.dateOfBirth ? client.dateOfBirth|date('Y-m-d') : '' }}</td>
             </tr>
             <tr>
                 <th>Sex</th>
@@ -33,7 +33,7 @@
             </tr>
             <tr>
                 <th>Photo</th>
-                <td>{{ client.photo }}</td>
+                <td><img src="{{ asset('uploads/photos/' ~ client.photo) }}" alt="Photo"></td>
             </tr>
             <tr>
                 <th>IsConfirmed</th>
