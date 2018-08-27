@@ -33,7 +33,7 @@
             </tr>
             <tr>
                 <th>Photo</th>
-                <td><img src="{{ asset('uploads/photos/' ~ client.photo) }}" alt="Photo"></td>
+                <td>{% if (client.photo) %}<img src="{{ asset('uploads/photos/' ~ client.photo) }}" alt="Photo">{% endif %}</td>
             </tr>
             <tr>
                 <th>IsConfirmed</th>
