@@ -3,12 +3,13 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ClientRepository")
  */
-class Client
+class Client implements UserInterface, \Serializable
 {
     /**
      * @ORM\Id()
@@ -19,11 +20,13 @@ class Client
 
     /**
      * @ORM\Column(type="string", length=128)
+     * @Assert\NotBlank()
      */
     private $name;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(type="date")
+     * @Assert\Date()
      */
     private $dateOfBirth;
 
@@ -34,7 +37,8 @@ class Client
     private $sex;
 
     /**
-     * @ORM\Column(type="string", length=128)
+     * @ORM\Column(type="string", length=128, unique=true)
+     * @Assert\NotBlank()
      * @Assert\Email(
      *     message = "The email '{{ value }}' is not a valid email.",
      *     checkMX = false
@@ -44,6 +48,7 @@ class Client
 
     /**
      * @ORM\Column(type="string", length=24)
+     * @Assert\NotBlank()
      */
     private $phone;
 
@@ -60,13 +65,20 @@ class Client
 
     /**
      * @ORM\Column(type="boolean")
+     * @Assert\Type("bool")
      */
     private $isConfirmed;
 
     /**
      * @ORM\Column(type="boolean")
+     * @Assert\Type("bool")
      */
     private $isActive;
+
+    /**
+     * @ORM\Column(type="string", length=64)
+     */
+    private $password;
     
     public function __construct()
     {
@@ -84,7 +96,7 @@ class Client
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(?string $name): self
     {
         $this->name = $name;
 
@@ -108,7 +120,7 @@ class Client
         return $this->sex;
     }
 
-    public function setSex(string $sex): self
+    public function setSex(?string $sex): self
     {
         $this->sex = $sex;
 
@@ -120,7 +132,7 @@ class Client
         return $this->email;
     }
 
-    public function setEmail(string $email): self
+    public function setEmail(?string $email): self
     {
         $this->email = $email;
 
@@ -132,7 +144,7 @@ class Client
         return $this->phone;
     }
 
-    public function setPhone(string $phone): self
+    public function setPhone(?string $phone): self
     {
         $this->phone = $phone;
 
@@ -173,5 +185,65 @@ class Client
         $this->isActive = $isActive;
 
         return $this;
+    }
+
+    public function getUsername()
+    {
+        return $this->email;
+    }
+
+    public function getSalt()
+    {
+        // you *may* need a real salt depending on your encoder
+        // see section on salt below
+        return null;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(?string $password): self
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    public function getRoles()
+    {
+        if ($this->email === 'admin@example.com') {
+            return ['ROLE_ADMIN'];
+        }
+        return ['ROLE_USER'];
+    }
+
+    public function eraseCredentials()
+    {
+    }
+
+    /** @see \Serializable::serialize() */
+    public function serialize()
+    {
+        return serialize([
+            $this->id,
+            $this->email,
+            $this->password,
+            // see section on salt below
+            // $this->salt,
+        ]);
+    }
+
+    /** @see \Serializable::unserialize() */
+    public function unserialize($serialized)
+    {
+        [
+            $this->id,
+            $this->email,
+            $this->password,
+            // see section on salt below
+            // $this->salt
+        ] = unserialize($serialized, ['allowed_classes' => false]);
     }
 }

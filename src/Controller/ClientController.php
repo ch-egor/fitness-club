@@ -65,6 +65,7 @@ class ClientController extends Controller
         $this->replaceClientPhotoNameWithFile($client);
 
         $form = $this->createForm(ClientType::class, $client);
+        $form->remove('email');
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
