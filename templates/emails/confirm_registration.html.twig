@@ -1,7 +1,8 @@
 <h3>Registration Confirmation</h3>
 
-Hi {{ client.name }}! To complete registration, please <a href="{{ url('security_login') }}">follow this link</a>.
+<p>
+    Hi {{ client.name }}! To complete registration, please
+    <a href="{{ url('client_activate', { 'code': client.emailConfirmationCode }) }}">follow this link</a>.
+</p>
 
-Confirmation Code: {{ client.emailConfirmationCode }}
-
-Thanks!
+<p>Thanks!</p>
