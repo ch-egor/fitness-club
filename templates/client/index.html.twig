@@ -15,7 +15,6 @@
                 <th>Email</th>
                 <th>Phone</th>
                 <th>Photo</th>
-                <th>IsConfirmed</th>
                 <th>IsActive</th>
                 <th>actions</th>
             </tr>
@@ -30,7 +29,6 @@
                 <td>{{ client.email }}</td>
                 <td>{{ client.phone }}</td>
                 <td>{% if (client.photo) %}<img src="{{ asset('uploads/photos/' ~ client.photo) }}" alt="Photo">{% endif %}</td>
-                <td>{{ client.isConfirmed ? 'Yes' : 'No' }}</td>
                 <td>{{ client.isActive ? 'Yes' : 'No' }}</td>
                 <td>
                     <a href="{{ path('client_show', {'id': client.id}) }}">show</a>

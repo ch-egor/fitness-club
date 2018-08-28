@@ -64,10 +64,9 @@ class Client implements UserInterface, \Serializable
     private $photo;
 
     /**
-     * @ORM\Column(type="boolean")
-     * @Assert\Type("bool")
+     * @ORM\Column(type="string", length=32, nullable=true)
      */
-    private $isConfirmed;
+    private $emailConfirmationCode;
 
     /**
      * @ORM\Column(type="boolean")
@@ -82,7 +81,7 @@ class Client implements UserInterface, \Serializable
     
     public function __construct()
     {
-        $this->setIsConfirmed(0);
+        $this->setPassword('');
         $this->setIsActive(0);
     }
 
@@ -163,14 +162,14 @@ class Client implements UserInterface, \Serializable
         return $this;
     }
 
-    public function getIsConfirmed(): ?bool
+    public function getEmailConfirmationCode(): ?string
     {
-        return $this->isConfirmed;
+        return $this->emailConfirmationCode;
     }
 
-    public function setIsConfirmed(bool $isConfirmed): self
+    public function setEmailConfirmationCode(?string $emailConfirmationCode): self
     {
-        $this->isConfirmed = $isConfirmed;
+        $this->emailConfirmationCode = $emailConfirmationCode;
 
         return $this;
     }
@@ -180,7 +179,7 @@ class Client implements UserInterface, \Serializable
         return $this->isActive;
     }
 
-    public function setIsActive(bool $isActive): self
+    public function setIsActive(?bool $isActive): self
     {
         $this->isActive = $isActive;
 

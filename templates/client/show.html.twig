@@ -36,10 +36,6 @@
                 <td>{% if (client.photo) %}<img src="{{ asset('uploads/photos/' ~ client.photo) }}" alt="Photo">{% endif %}</td>
             </tr>
             <tr>
-                <th>IsConfirmed</th>
-                <td>{{ client.isConfirmed ? 'Yes' : 'No' }}</td>
-            </tr>
-            <tr>
                 <th>IsActive</th>
                 <td>{{ client.isActive ? 'Yes' : 'No' }}</td>
             </tr>

@@ -15,7 +15,7 @@ class UserChecker implements UserCheckerInterface
             return;
         }
 
-        if (!$user->getIsConfirmed()) {
+        if (!empty($user->getEmailConfirmationCode())) {
             throw new DisabledException('The user has not confirmed the e-mail address.');
         }
         if (!$user->getIsActive()) {
