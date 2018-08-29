@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/group/session")
+ * @Route("/admin/session")
  */
 class GroupSessionController extends Controller
 {

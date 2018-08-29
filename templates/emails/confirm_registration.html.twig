@@ -2,7 +2,7 @@
 
 <p>
     Hi {{ client.name }}! To complete registration, please
-    <a href="{{ url('client_activate', { 'code': client.emailConfirmationCode }) }}">follow this link</a>.
+    <a href="{{ url('profile_activate', { 'id': client.id, 'code': client.emailConfirmationCode }) }}">follow this link</a>.
 </p>
 
 <p>Thanks!</p>
