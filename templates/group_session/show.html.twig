@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}GroupSession{% endblock %}
+
+{% block body %}
+    <h1>GroupSession</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ group_session.id }}</td>
+            </tr>
+            <tr>
+                <th>Name</th>
+                <td>{{ group_session.name }}</td>
+            </tr>
+            <tr>
+                <th>Coach</th>
+                <td>{{ group_session.coach }}</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td>{{ group_session.description }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('group_session_index') }}">back to list</a>
+
+    <a href="{{ path('group_session_edit', {'id': group_session.id}) }}">edit</a>
+
+    {{ include('group_session/_delete_form.html.twig') }}
+{% endblock %}
