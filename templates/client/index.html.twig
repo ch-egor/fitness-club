@@ -8,27 +8,27 @@
     <table class="table">
         <thead>
             <tr>
-                <th>Id</th>
                 <th>Name</th>
-                <th>DateOfBirth</th>
+                <th>Date of Birth</th>
                 <th>Sex</th>
                 <th>Email</th>
                 <th>Phone</th>
                 <th>Photo</th>
-                <th>IsActive</th>
+                <th>Confirmed</th>
+                <th>Active</th>
                 <th>actions</th>
             </tr>
         </thead>
         <tbody>
         {% for client in clients %}
             <tr>
-                <td>{{ client.id }}</td>
                 <td>{{ client.name }}</td>
                 <td>{{ client.dateOfBirth ? client.dateOfBirth|date('Y-m-d H:i:s') : '' }}</td>
                 <td>{{ client.sex }}</td>
                 <td>{{ client.email }}</td>
                 <td>{{ client.phone }}</td>
-                <td>{% if (client.photo) %}<img src="{{ asset('uploads/photos/' ~ client.photo) }}" alt="Photo">{% endif %}</td>
+                <td>{{ client.photo ? 'Yes' : 'No' }}</td>
+                <td>{{ client.emailConfirmationCode ? 'No' : 'Yes' }}</td>
                 <td>{{ client.isActive ? 'Yes' : 'No' }}</td>
                 <td>
                     <a href="{{ path('client_show', {'id': client.id}) }}">show</a>

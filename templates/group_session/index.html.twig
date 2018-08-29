@@ -8,7 +8,6 @@
     <table class="table">
         <thead>
             <tr>
-                <th>Id</th>
                 <th>Name</th>
                 <th>Coach</th>
                 <th>Description</th>
@@ -18,7 +17,6 @@
         <tbody>
         {% for group_session in group_sessions %}
             <tr>
-                <td>{{ group_session.id }}</td>
                 <td>{{ group_session.name }}</td>
                 <td>{{ group_session.coach }}</td>
                 <td>{{ group_session.description }}</td>

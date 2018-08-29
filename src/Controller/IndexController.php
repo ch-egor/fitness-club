@@ -69,25 +69,4 @@ class IndexController extends Controller
             'form' => $form->createView(),
         ]);
     }
-
-    private function generateEmailConfirmationCode(): string
-    {
-        return md5(uniqid());
-    }
-
-    private function sendEmailConfirmationLetter(\Swift_Mailer $mailer, Client $client): void
-    {
-        $message = (new \Swift_Message('Confirm Registration'))
-            ->setFrom('noreply@example.com')
-            ->setTo($client->getEmail())
-            ->setBody(
-                $this->renderView(
-                    'emails/confirm_registration.html.twig',
-                    ['client' => $client]
-                ),
-                'text/html'
-            );
-
-        $mailer->send($message);
-    }
 }

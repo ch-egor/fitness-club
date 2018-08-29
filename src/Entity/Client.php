@@ -82,7 +82,8 @@ class Client implements UserInterface, \Serializable
     public function __construct()
     {
         $this->setPassword('');
-        $this->setIsActive(0);
+        $this->setEmailConfirmationCode($this->generateEmailConfirmationCode());
+        $this->setIsActive(1);
     }
 
     public function getId(): ?int
@@ -244,5 +245,10 @@ class Client implements UserInterface, \Serializable
             // see section on salt below
             // $this->salt
         ] = unserialize($serialized, ['allowed_classes' => false]);
+    }
+
+    private function generateEmailConfirmationCode(): string
+    {
+        return md5(uniqid());
     }
 }
