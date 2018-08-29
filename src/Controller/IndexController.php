@@ -47,14 +47,13 @@ class IndexController extends Controller
             $client->setPassword($password);
 
             $client->setEmailConfirmationCode(null);
-            $client->setIsActive(1);
 
             $this->getDoctrine()->getManager()->flush();
 
             return $this->redirectToRoute('index');
         }
 
-        return $this->render('client/activate.html.twig', [
+        return $this->render('index/activate.html.twig', [
             'client' => $client,
             'form' => $form->createView(),
         ]);

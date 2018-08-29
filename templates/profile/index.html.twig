@@ -3,5 +3,36 @@
 {% block title %}Profile index{% endblock %}
 
 {% block body %}
-    This is a user profile page stub.
+    <h1>Profile</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Name</th>
+                <td>{{ client.name }}</td>
+            </tr>
+            <tr>
+                <th>Date of Birth</th>
+                <td>{{ client.dateOfBirth ? client.dateOfBirth|date('Y-m-d') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Sex</th>
+                <td>{{ client.sex }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ client.email }}</td>
+            </tr>
+            <tr>
+                <th>Phone</th>
+                <td>{{ client.phone }}</td>
+            </tr>
+            <tr>
+                <th>Photo</th>
+                <td>{% if (client.photo) %}<img src="{{ asset('uploads/photos/' ~ client.photo) }}" alt="Photo">{% endif %}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('profile_change_password') }}">change password</a>
 {% endblock %}
