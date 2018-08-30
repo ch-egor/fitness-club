@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Form\ClientPasswordType;
+use App\Repository\GroupSessionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,6 +25,14 @@ class ProfileController extends Controller
         $client = $this->getUser();
 
         return $this->render('profile/index.html.twig', ['client' => $client]);
+    }
+
+    /**
+     * @Route("/sessions", name="profile_group_sessions", methods="GET")
+     */
+    public function groupSessions(GroupSessionRepository $groupSessionRepository): Response
+    {
+        return $this->render('profile/group_sessions.html.twig', ['group_sessions' => $groupSessionRepository->findAll()]);
     }
 
     /**
