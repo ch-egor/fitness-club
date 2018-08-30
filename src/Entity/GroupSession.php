@@ -84,6 +84,16 @@ class GroupSession
         return $this;
     }
 
+    public function getSubscribedClientCount(): int
+    {
+        return $this->subscriptions
+            ->filter(function ($subscription) {
+                return $subscription->getNotificationType() !== Subscription::NOTIFICATION_TYPE_NONE;
+            })
+            ->count()
+        ;
+    }
+
     public function generateClientSubscription(Client $client): Subscription
     {
         $subscription = $this->subscriptions

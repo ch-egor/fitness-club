@@ -11,6 +11,7 @@
                 <th>Name</th>
                 <th>Coach</th>
                 <th>Description</th>
+                <th>Subscribed Clients</th>
                 <th>actions</th>
             </tr>
         </thead>
@@ -20,6 +21,7 @@
                 <td>{{ group_session.name }}</td>
                 <td>{{ group_session.coach }}</td>
                 <td>{{ group_session.description }}</td>
+                <td>{{ group_session.subscribedClientCount }}</td>
                 <td>
                     <a href="{{ path('group_session_show', {'id': group_session.id}) }}">show</a>
                     <a href="{{ path('group_session_edit', {'id': group_session.id}) }}">edit</a>
