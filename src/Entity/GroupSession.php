@@ -34,7 +34,7 @@ class GroupSession
     private $description;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Subscription", mappedBy="groupSession", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\Subscription", mappedBy="groupSession", cascade={"persist"}, orphanRemoval=true)
      */
     private $subscriptions;
 
@@ -84,34 +84,21 @@ class GroupSession
         return $this;
     }
 
-    /**
-     * @return Collection|Subscription[]
-     */
-    public function getSubscriptions(): Collection
+    public function generateClientSubscription(Client $client): Subscription
     {
-        return $this->subscriptions;
-    }
-
-    public function addSubscription(Subscription $subscription): self
-    {
-        if (!$this->subscriptions->contains($subscription)) {
+        $subscription = $this->subscriptions
+            ->filter(function ($subscription) use ($client) {
+                return $subscription->getClient() === $client;
+            })
+            ->first()
+        ;
+        if (!$subscription) {
+            $subscription = (new Subscription())
+                ->setClient($client)
+                ->setGroupSession($this)
+            ;
             $this->subscriptions[] = $subscription;
-            $subscription->setGroupSession($this);
         }
-
-        return $this;
-    }
-
-    public function removeSubscription(Subscription $subscription): self
-    {
-        if ($this->subscriptions->contains($subscription)) {
-            $this->subscriptions->removeElement($subscription);
-            // set the owning side to null (unless already changed)
-            if ($subscription->getGroupSession() === $this) {
-                $subscription->setGroupSession(null);
-            }
-        }
-
-        return $this;
+        return $subscription;
     }
 }

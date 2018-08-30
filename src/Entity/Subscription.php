@@ -3,12 +3,26 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\SubscriptionRepository")
  */
 class Subscription
 {
+    public const NOTIFICATION_TYPE_NONE = 0;
+    public const NOTIFICATION_TYPE_SMS = 1;
+    public const NOTIFICATION_TYPE_EMAIL = 2;
+
+    public static function getNotificationTypes(): array
+    {
+        return [
+            self::NOTIFICATION_TYPE_NONE,
+            self::NOTIFICATION_TYPE_SMS,
+            self::NOTIFICATION_TYPE_EMAIL,
+        ];
+    }
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -30,8 +44,14 @@ class Subscription
 
     /**
      * @ORM\Column(type="integer")
+     * @Assert\Choice(callback="getNotificationTypes")
      */
     private $notificationType;
+
+    public function __construct()
+    {
+        $this->setNotificationType(self::NOTIFICATION_TYPE_NONE);
+    }
 
     public function getId(): ?int
     {

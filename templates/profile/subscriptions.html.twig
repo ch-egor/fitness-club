@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Subscriptions{% endblock %}
+
+{% block body %}
+    <h1>Subscriptions</h1>
+
+    {{ form_start(form) }}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Coach</th>
+                    <th>Description</th>
+                    <th>Notification Type</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for subscription in form.subscriptions %}
+                <tr>
+                    <td>{{ subscription.vars.data.groupSession.name }}</td>
+                    <td>{{ subscription.vars.data.groupSession.coach }}</td>
+                    <td>{{ subscription.vars.data.groupSession.description }}</td>
+                    <td>{{ form_row(subscription) }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5">no records found</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <button class="btn">Save</button>
+    {{ form_end(form) }}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        form[name="form"] .form-group {
+            margin-bottom: 0;
+        }
+    </style>
+{% endblock %}
