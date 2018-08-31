@@ -5,17 +5,26 @@ namespace App\Service;
 use App\Entity\Client;
 use App\Entity\GroupSession;
 use App\Entity\Subscription;
+use PhpAmqpLib\Channel\AMQPChannel;
+use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Message\AMQPMessage;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class Notifications
 {
-    public function __construct()
+    private const MAIN_EXCHANGE_NAME = 'fc_main';
+    private const DELAYED_EXCHANGE_NAME = 'fc_delayed';
+
+    private $channel;
+    
+    public function __destruct()
     {
-        
+        $this->closeChannel();
     }
 
-    public function sendGroupSessionEmailNotification(GroupSession $groupSession, ?string $messageTemplate): void
+    public function sendGroupSessionEmailNotification(GroupSession $groupSession, ?string $template): void
     {
-        if (empty($messageTemplate)) {
+        if (empty($template)) {
             return;
         }
 
@@ -28,16 +37,17 @@ class Notifications
                 continue;
             }
 
-            $message = $this->renderMessageTemplate($messageTemplate, $client);
             $email = $client->getEmail();
+            $subject = $groupSession->getName() . ' Notification';
+            $content = $this->renderMessageContentTemplate($template, $client);
 
-            $this->enqueueEmailMessage($email, $message);
+            $this->enqueueEmailMessage($email, $subject, $content);
         }
     }
 
-    public function sendGroupSessionSmsNotification(GroupSession $groupSession, ?string $messageTemplate): void
+    public function sendGroupSessionSmsNotification(GroupSession $groupSession, ?string $template): void
     {
-        if (empty($messageTemplate)) {
+        if (empty($template)) {
             return;
         }
 
@@ -50,14 +60,33 @@ class Notifications
                 continue;
             }
 
-            $message = $this->renderMessageTemplate($messageTemplate, $client);
             $phone = $client->getPhone();
+            $content = $this->renderMessageContentTemplate($template, $client);
 
-            $this->enqueueSmsMessage($phone, $message);
+            $this->enqueueSmsMessage($phone, $content);
         }
     }
 
-    private function renderMessageTemplate(string $messageTemplate, Client $client): string
+    public function listen(OutputInterface $output): void
+    {
+        $channel = $this->getChannel();
+
+        [$queueName, ,] = $channel->queue_declare("", false, false, true, false);
+        $channel->queue_bind($queueName, self::MAIN_EXCHANGE_NAME);
+
+        $callback = function ($message) use ($output) {
+            $timestamp = date("Y-m-d H:i:s");
+            $output->writeln(" [{$timestamp}] {$message->body}");
+        };
+        $channel->basic_consume($queueName, '', false, true, false, false, $callback);
+
+        while (count($channel->callbacks)) {
+            $channel->wait();
+        }
+        $this->closeChannel();
+    }
+
+    private function renderMessageContentTemplate(string $template, Client $client): string
     {
         $templateStrings = [
             '%name%',
@@ -72,16 +101,72 @@ class Notifications
             $client->getPhone()
         ];
 
-        return str_replace($templateStrings, $replacements, $messageTemplate);
+        return str_replace($templateStrings, $replacements, $template);
     }
 
-    private function enqueueEmailMessage(string $email, string $message): void
+    private function enqueueEmailMessage(string $email, string $subject, string $content): void
     {
-        // TODO: implement
+        $data = json_encode([
+            'type' => 'email',
+            'email' => $email,
+            'subject' => $subject,
+            'content' => $content,
+        ]);
+        $message = new AMQPMessage($data);
+
+        $channel = $this->getChannel();
+        $channel->basic_publish($message, self::MAIN_EXCHANGE_NAME);
+        $this->closeChannel();
     }
 
-    private function enqueueSmsMessage(string $phone, string $message): void
+    private function enqueueSmsMessage(string $phone, string $content): void
     {
-        // TODO: implement
+        $data = json_encode([
+            'type' => 'sms',
+            'phone' => $phone,
+            'content' => $content,
+        ]);
+        $message = new AMQPMessage($data);
+
+        $channel = $this->getChannel();
+        $channel->basic_publish($message, self::MAIN_EXCHANGE_NAME);
+        $this->closeChannel();
+    }
+
+    private function getChannel(): AMQPChannel
+    {
+        if (!$this->channel) {
+            $this->openChannel();
+        }
+        return $this->channel;
+    }
+
+    private function openChannel(): void
+    {
+        $host = 'localhost';
+        $post = 5672;
+        $user = 'guest';
+        $password = 'guest';
+
+        $connection = new AMQPStreamConnection($host, $post, $user, $password);
+        $channel = $connection->channel();
+
+        $channel->exchange_declare(self::MAIN_EXCHANGE_NAME, 'fanout', false, false, false);
+
+        $this->channel = $channel;
+    }
+
+    private function closeChannel(): void
+    {
+        if (!$this->channel) {
+            return;
+        }
+        $channel = $this->channel;
+        $connection = $channel->getConnection();
+
+        $this->channel = null;
+
+        $channel->close();
+        $connection->close();
     }
 }
