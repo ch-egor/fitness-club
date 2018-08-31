@@ -41,6 +41,7 @@ class ProfileController extends Controller
         $this->generateClientSubscriptions($client);
         $subscriptions = $subscriptionRepository->findByClient($client);
 
+        // TODO: make the form more robust to data change between form load and form submission
         $form = $this->createFormBuilder(['subscriptions' => $subscriptions])
             ->add('subscriptions', CollectionType::class, [
                 'label' => false,

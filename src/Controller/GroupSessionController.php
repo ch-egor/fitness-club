@@ -5,7 +5,9 @@ namespace App\Controller;
 use App\Entity\GroupSession;
 use App\Form\GroupSessionType;
 use App\Repository\GroupSessionRepository;
+use App\Service\Notifications;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -47,11 +49,32 @@ class GroupSessionController extends Controller
     }
 
     /**
-     * @Route("/{id}", name="group_session_show", methods="GET")
+     * @Route("/{id}", name="group_session_show", methods="GET|POST")
      */
-    public function show(GroupSession $groupSession): Response
+    public function show(Request $request, Notifications $notifications, GroupSession $groupSession): Response
     {
-        return $this->render('group_session/show.html.twig', ['group_session' => $groupSession]);
+        $form = $this->createFormBuilder(['email' => '', 'sms' => ''])
+            ->add('email', TextareaType::class, [
+                'required' => false,
+            ])
+            ->add('sms', TextareaType::class, [
+                'required' => false,
+            ])
+            ->getForm();
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $messages = $form->getData();
+            $notifications->sendGroupSessionEmailNotification($groupSession, $messages['email']);
+            $notifications->sendGroupSessionSmsNotification($groupSession, $messages['sms']);
+
+            return $this->redirectToRoute('group_session_index');
+        }
+
+        return $this->render('group_session/show.html.twig', [
+            'group_session' => $groupSession,
+            'form' => $form->createView(),
+        ]);
     }
 
     /**

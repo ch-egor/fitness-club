@@ -84,6 +84,11 @@ class GroupSession
         return $this;
     }
 
+    public function getSubscriptions(): Collection
+    {
+        return $this->subscriptions;
+    }
+
     public function getSubscribedClientCount(): int
     {
         return $this->subscriptions

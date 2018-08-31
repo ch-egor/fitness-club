@@ -27,4 +27,11 @@
     <a href="{{ path('group_session_edit', {'id': group_session.id}) }}">edit</a>
 
     {{ include('group_session/_delete_form.html.twig') }}
+
+    <hr>
+
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button class="btn">Send</button>
+    {{ form_end(form) }}
 {% endblock %}
