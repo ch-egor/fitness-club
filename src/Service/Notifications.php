@@ -24,6 +24,9 @@ class Notifications
                 continue;
             }
             $client = $subscription->getClient();
+            if (!$client->getIsActive()) {
+                continue;
+            }
 
             $message = $this->renderMessageTemplate($messageTemplate, $client);
             $email = $client->getEmail();
@@ -43,6 +46,9 @@ class Notifications
                 continue;
             }
             $client = $subscription->getClient();
+            if (!$client->getIsActive()) {
+                continue;
+            }
 
             $message = $this->renderMessageTemplate($messageTemplate, $client);
             $phone = $client->getPhone();
@@ -53,8 +59,18 @@ class Notifications
 
     private function renderMessageTemplate(string $messageTemplate, Client $client): string
     {
-        $templateStrings = ['%name%', '%dob%', '%email%', '%phone'];
-        $replacements = [$client->getName(), $client->getDateOfBirth(), $client->getEmail(), $client->getPhone()];
+        $templateStrings = [
+            '%name%',
+            '%dob%',
+            '%email%',
+            '%phone',
+        ];
+        $replacements = [
+            $client->getName(),
+            $client->getDateOfBirth()->format('Y-m-d'),
+            $client->getEmail(),
+            $client->getPhone()
+        ];
 
         return str_replace($templateStrings, $replacements, $messageTemplate);
     }

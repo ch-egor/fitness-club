@@ -23,7 +23,7 @@
         {% for client in clients %}
             <tr>
                 <td>{{ client.name }}</td>
-                <td>{{ client.dateOfBirth ? client.dateOfBirth|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ client.dateOfBirth ? client.dateOfBirth|date('Y-m-d') : '' }}</td>
                 <td>{{ client.sex }}</td>
                 <td>{{ client.email }}</td>
                 <td>{{ client.phone }}</td>
