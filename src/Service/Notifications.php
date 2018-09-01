@@ -9,6 +9,7 @@ use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class Notifications
 {
@@ -16,6 +17,14 @@ class Notifications
     private const DELAYED_EXCHANGE_NAME = 'fc_delayed';
 
     private $channel;
+    private $mailer;
+    private $router;
+
+    public function __construct(\Swift_Mailer $mailer, UrlGeneratorInterface $router)
+    {
+        $this->mailer = $mailer;
+        $this->router = $router;
+    }
     
     public function __destruct()
     {
@@ -41,7 +50,7 @@ class Notifications
             $subject = $groupSession->getName() . ' Notification';
             $content = $this->renderMessageContentTemplate($template, $client);
 
-            $this->enqueueEmailMessage($email, $subject, $content);
+            $this->enqueueEmail($email, $subject, $content);
         }
     }
 
@@ -63,7 +72,7 @@ class Notifications
             $phone = $client->getPhone();
             $content = $this->renderMessageContentTemplate($template, $client);
 
-            $this->enqueueSmsMessage($phone, $content);
+            $this->enqueueSms($phone, $content);
         }
     }
 
@@ -77,6 +86,9 @@ class Notifications
         $callback = function ($message) use ($output) {
             $timestamp = date("Y-m-d H:i:s");
             $output->writeln(" [{$timestamp}] {$message->body}");
+            
+            $isDelivered = $this->dispatchMessage($message->body);
+            $output->writeln($isDelivered ? 'Delivered' : 'Not delivered');
         };
         $channel->basic_consume($queueName, '', false, true, false, false, $callback);
 
@@ -84,6 +96,47 @@ class Notifications
             $channel->wait();
         }
         $this->closeChannel();
+    }
+
+    private function dispatchMessage(string $messageJson): bool
+    {
+        $messageData = json_decode($messageJson);
+        
+        switch ($messageData->type) {
+            case 'email':
+                return $this->dispatchEmail($messageData->email, $messageData->subject, $messageData->content);
+            case 'sms':
+                return $this->dispatchSms($messageData->phone, $messageData->content);
+            default:
+                return false;
+        }
+    }
+
+    private function dispatchEmail(string $email, string $subject, string $content): bool
+    {
+        $message = (new \Swift_Message())
+            ->setSubject($subject)
+            ->setFrom('noreply@example.com')
+            ->setTo($email)
+            ->setBody($content, 'text/html');
+
+        $recipientCount = $this->mailer->send($message);
+        return $recipientCount > 0;
+    }
+
+    private function dispatchSms(string $phone, string $content): bool
+    {
+        $apiUrl = 'http://localhost/fitness-club/public/index.php/sms/send';
+
+        $requestUrl = $apiUrl . '?phone=' . urlencode($phone) . '&message=' . urlencode($content);
+
+        $client = new \GuzzleHttp\Client();
+        try {
+            $res = $client->request('GET', $requestUrl);
+        } catch (\GuzzleHttp\Exception\ServerException $e) {
+            return false;
+        }
+        return true;
     }
 
     private function renderMessageContentTemplate(string $template, Client $client): string
@@ -104,7 +157,7 @@ class Notifications
         return str_replace($templateStrings, $replacements, $template);
     }
 
-    private function enqueueEmailMessage(string $email, string $subject, string $content): void
+    private function enqueueEmail(string $email, string $subject, string $content): void
     {
         $data = json_encode([
             'type' => 'email',
@@ -119,7 +172,7 @@ class Notifications
         $this->closeChannel();
     }
 
-    private function enqueueSmsMessage(string $phone, string $content): void
+    private function enqueueSms(string $phone, string $content): void
     {
         $data = json_encode([
             'type' => 'sms',
