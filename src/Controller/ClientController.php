@@ -113,7 +113,7 @@ class ClientController extends Controller
 
         // moves the file to the directory where photos are stored
         $file->move(
-            $this->getParameter('photos_directory'),
+            $this->getParameter('app.photos_directory'),
             $fileName
         );
 
@@ -128,7 +128,7 @@ class ClientController extends Controller
             return;
         }
         $client->setPhoto(
-            new File($this->getParameter('photos_directory') . '/' . $client->getPhoto())
+            new File($this->getParameter('app.photos_directory') . '/' . $client->getPhoto())
         );
     }
     

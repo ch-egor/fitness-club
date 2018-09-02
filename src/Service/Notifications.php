@@ -10,6 +10,7 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Wire\AMQPTable;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class Notifications
@@ -20,11 +21,13 @@ class Notifications
     private const DELAYED_QUEUE_NAME = 'fc_delayed_queue';
     private const DELAY_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 
-    private $channel;
+    private $params;
     private $mailer;
+    private $channel;
 
-    public function __construct(\Swift_Mailer $mailer)
+    public function __construct(ParameterBagInterface $params, \Swift_Mailer $mailer)
     {
+        $this->params = $params;
         $this->mailer = $mailer;
     }
     
@@ -36,7 +39,7 @@ class Notifications
     private function sendEmailConfirmationLetter(Client $client): void
     {
         $message = (new \Swift_Message('Confirm Registration'))
-            ->setFrom('noreply@example.com')
+            ->setFrom($this->params->get('app.email_from'))
             ->setTo($client->getEmail())
             ->setBody(
                 $this->renderView(
@@ -131,7 +134,7 @@ class Notifications
     {
         $message = (new \Swift_Message())
             ->setSubject($subject)
-            ->setFrom('noreply@example.com')
+            ->setFrom($this->params->get('app.email_from'))
             ->setTo($email)
             ->setBody($content, 'text/html');
 
@@ -141,7 +144,7 @@ class Notifications
 
     private function dispatchSms(string $phone, string $content): bool
     {
-        $apiUrl = 'http://localhost/fitness-club/public/index.php/sms/send';
+        $apiUrl = $this->params->get('app.sms_api_url');
 
         $requestUrl = $apiUrl . '?phone=' . urlencode($phone) . '&message=' . urlencode($content);
 
@@ -225,10 +228,10 @@ class Notifications
 
     private function openChannel(): void
     {
-        $host = 'localhost';
-        $post = 5672;
-        $user = 'guest';
-        $password = 'guest';
+        $host = $this->params->get('app.rabbitmq.host');
+        $post = $this->params->get('app.rabbitmq.port');
+        $user = $this->params->get('app.rabbitmq.user');
+        $password = $this->params->get('app.rabbitmq.password');
 
         $connection = new AMQPStreamConnection($host, $post, $user, $password);
         $channel = $connection->channel();

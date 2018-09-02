@@ -5,7 +5,14 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     locale: 'en'
-    photos_directory: '%kernel.project_dir%/public/uploads/photos'
+    app.photos_directory: '%kernel.project_dir%/public/uploads/photos'
+    # TODO: move RabbitMQ connection settings to environment variables
+    app.rabbitmq.host: 'localhost'
+    app.rabbitmq.port: 5672
+    app.rabbitmq.user: 'guest'
+    app.rabbitmq.password: 'guest'
+    app.email_from: 'noreply@example.com'
+    app.sms_api_url: 'http://localhost/fitness-club/public/index.php/sms/send'
 
 services:
     # default configuration for services in *this* file
