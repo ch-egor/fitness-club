@@ -23,12 +23,14 @@ class Notifications
 
     private $params;
     private $mailer;
+    private $twig;
     private $channel;
 
-    public function __construct(ParameterBagInterface $params, \Swift_Mailer $mailer)
+    public function __construct(ParameterBagInterface $params, \Swift_Mailer $mailer, \Twig_Environment $twig)
     {
         $this->params = $params;
         $this->mailer = $mailer;
+        $this->twig = $twig;
     }
     
     public function __destruct()
@@ -36,13 +38,13 @@ class Notifications
         $this->closeChannel();
     }
 
-    private function sendEmailConfirmationLetter(Client $client): void
+    public function sendEmailConfirmationLetter(Client $client): void
     {
         $message = (new \Swift_Message('Confirm Registration'))
             ->setFrom($this->params->get('app.email_from'))
             ->setTo($client->getEmail())
             ->setBody(
-                $this->renderView(
+                $this->twig->render(
                     'emails/confirm_registration.html.twig',
                     ['client' => $client]
                 ),
