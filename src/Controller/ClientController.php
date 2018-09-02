@@ -138,20 +138,4 @@ class ClientController extends Controller
         // uniqid(), which is based on timestamps
         return md5(uniqid());
     }
-
-    private function sendEmailConfirmationLetter(\Swift_Mailer $mailer, Client $client): void
-    {
-        $message = (new \Swift_Message('Confirm Registration'))
-            ->setFrom('noreply@example.com')
-            ->setTo($client->getEmail())
-            ->setBody(
-                $this->renderView(
-                    'emails/confirm_registration.html.twig',
-                    ['client' => $client]
-                ),
-                'text/html'
-            );
-
-        $mailer->send($message);
-    }
 }
