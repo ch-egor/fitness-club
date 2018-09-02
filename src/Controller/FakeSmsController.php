@@ -22,14 +22,13 @@ class FakeSmsController extends Controller
         $phone = $request->query->get('phone');
         $message = $request->query->get('message');
 
-        $isSuccess = (rand(0, 4) >= 2);
+        $isSuccess = (rand(0, 4) >= 2); // 3 messages out of 5 are successful
 
         if ($isSuccess) {
             $logger->info("Delivered to {$phone}: {$message}");
-            return new JsonResponse('Success', 200);
-        } else {
-            $logger->info("Failed to deliver to {$phone}: {$message}");
-            return new JsonResponse('Failure', 500);
+            return new JsonResponse('Success', JsonResponse::HTTP_OK);
         }
+        $logger->info("Failed to deliver to {$phone}: {$message}");
+        return new JsonResponse('Failure', JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
     }
 }

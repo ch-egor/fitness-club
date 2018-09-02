@@ -8,22 +8,24 @@ use App\Entity\Subscription;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
+use PhpAmqpLib\Wire\AMQPTable;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class Notifications
 {
-    private const MAIN_EXCHANGE_NAME = 'fc_main';
-    private const DELAYED_EXCHANGE_NAME = 'fc_delayed';
+    private const MAIN_EXCHANGE_NAME = 'fc_main_exchange';
+    private const DELAYED_EXCHANGE_NAME = 'fc_delayed_exchange';
+    private const MAIN_QUEUE_NAME = 'fc_main_queue';
+    private const DELAYED_QUEUE_NAME = 'fc_delayed_queue';
+    private const DELAY_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 
     private $channel;
     private $mailer;
-    private $router;
 
-    public function __construct(\Swift_Mailer $mailer, UrlGeneratorInterface $router)
+    public function __construct(\Swift_Mailer $mailer)
     {
         $this->mailer = $mailer;
-        $this->router = $router;
     }
     
     public function __destruct()
@@ -80,17 +82,14 @@ class Notifications
     {
         $channel = $this->getChannel();
 
-        [$queueName, ,] = $channel->queue_declare("", false, false, true, false);
-        $channel->queue_bind($queueName, self::MAIN_EXCHANGE_NAME);
-
         $callback = function ($message) use ($output) {
             $timestamp = date("Y-m-d H:i:s");
             $output->writeln(" [{$timestamp}] {$message->body}");
-            
+
             $isDelivered = $this->dispatchMessage($message->body);
             $output->writeln($isDelivered ? 'Delivered' : 'Not delivered');
         };
-        $channel->basic_consume($queueName, '', false, true, false, false, $callback);
+        $channel->basic_consume(self::MAIN_QUEUE_NAME, '', false, true, false, false, $callback);
 
         while (count($channel->callbacks)) {
             $channel->wait();
@@ -134,9 +133,23 @@ class Notifications
         try {
             $res = $client->request('GET', $requestUrl);
         } catch (\GuzzleHttp\Exception\ServerException $e) {
+            $this->scheduleSmsRedelivery($phone, $content);
             return false;
         }
         return true;
+    }
+
+    private function scheduleSmsRedelivery(string $phone, string $content): void
+    {
+        $data = json_encode([
+            'type' => 'sms',
+            'phone' => $phone,
+            'content' => $content,
+        ]);
+        $message = new AMQPMessage($data);
+
+        $channel = $this->getChannel();
+        $channel->basic_publish($message, self::DELAYED_EXCHANGE_NAME);
     }
 
     private function renderMessageContentTemplate(string $template, Client $client): string
@@ -205,6 +218,15 @@ class Notifications
         $channel = $connection->channel();
 
         $channel->exchange_declare(self::MAIN_EXCHANGE_NAME, 'fanout', false, false, false);
+        $channel->queue_declare(self::MAIN_QUEUE_NAME, false, false, false, false);
+        $channel->queue_bind(self::MAIN_QUEUE_NAME, self::MAIN_EXCHANGE_NAME);
+
+        $channel->exchange_declare(self::DELAYED_EXCHANGE_NAME, 'fanout', false, false, false);
+        $channel->queue_declare(self::DELAYED_QUEUE_NAME, false, false, false, false, false, new AMQPTable([
+            "x-dead-letter-exchange" => self::MAIN_EXCHANGE_NAME,
+            "x-message-ttl" => self::DELAY_TIMEOUT,
+        ]));
+        $channel->queue_bind(self::DELAYED_QUEUE_NAME, self::DELAYED_EXCHANGE_NAME);
 
         $this->channel = $channel;
     }
