@@ -33,6 +33,22 @@ class Notifications
         $this->closeChannel();
     }
 
+    private function sendEmailConfirmationLetter(Client $client): void
+    {
+        $message = (new \Swift_Message('Confirm Registration'))
+            ->setFrom('noreply@example.com')
+            ->setTo($client->getEmail())
+            ->setBody(
+                $this->renderView(
+                    'emails/confirm_registration.html.twig',
+                    ['client' => $client]
+                ),
+                'text/html'
+            );
+
+        $this->mailer->send($message);
+    }
+
     public function sendGroupSessionEmailNotification(GroupSession $groupSession, ?string $template): void
     {
         if (empty($template)) {

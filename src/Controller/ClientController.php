@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Client;
 use App\Form\ClientType;
 use App\Repository\ClientRepository;
+use App\Service\Notifications;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,7 +28,7 @@ class ClientController extends Controller
     /**
      * @Route("/new", name="client_new", methods="GET|POST")
      */
-    public function new(Request $request, \Swift_Mailer $mailer): Response
+    public function new(Request $request, Notifications $notifications): Response
     {
         $client = new Client();
         $form = $this->createForm(ClientType::class, $client);
@@ -41,7 +42,7 @@ class ClientController extends Controller
             $em->persist($client);
             $em->flush();
 
-            $this->sendEmailConfirmationLetter($mailer, $client);
+            $notifications->sendEmailConfirmationLetter($client);
 
             return $this->redirectToRoute('client_index');
         }
