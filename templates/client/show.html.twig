@@ -29,7 +29,7 @@
             </tr>
             <tr>
                 <th>Photo</th>
-                <td>{% if (client.photo) %}<img src="{{ asset('uploads/photos/' ~ client.photo) }}" alt="Photo">{% endif %}</td>
+                <td>{% if (client.photo) %}<img src="{{ asset('uploads/photos/' ~ client.photo.filename) }}" alt="Photo">{% endif %}</td>
             </tr>
             <tr>
                 <th>Confirmed</th>
