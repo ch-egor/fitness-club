@@ -40,18 +40,14 @@ class Notifications
 
     public function sendEmailConfirmationLetter(Client $client): void
     {
-        $message = (new \Swift_Message('Confirm Registration'))
-            ->setFrom($this->params->get('app.email_from'))
-            ->setTo($client->getEmail())
-            ->setBody(
-                $this->twig->render(
-                    'emails/confirm_registration.html.twig',
-                    ['client' => $client]
-                ),
-                'text/html'
-            );
+        $email = $client->getEmail();
+        $subject = 'Confirm Registration';
+        $content = $this->twig->render(
+            'emails/confirm_registration.html.twig',
+            ['client' => $client]
+        );
 
-        $this->mailer->send($message);
+        $this->enqueueEmail($email, $subject, $content);
     }
 
     public function sendGroupSessionEmailNotification(GroupSession $groupSession, ?string $template): void
